@@ -2,33 +2,40 @@ using System;
 
 namespace BlockChainAnalysis.DataStructures.Collections
 {
-    // 4. KİŞİ TARAFINDAN DOLDURULACAKTIR (Kuyruk)
-    // BFS algoritması için kullanılacaktır
     public class CustomQueue<T>
     {
-        // TODO: Kuyruk yapısı için LinkedList veya Array tanımlayın
+        private class Node { public T Data; public Node Next; public Node(T data) { Data = data; Next = null; } }
+        private Node _head;
+        private Node _tail;
+        private int _count;
 
-        public CustomQueue()
-        {
-            // TODO: Başlangıç atamalarını yapın
-        }
+        public CustomQueue() { _head = null; _tail = null; _count = 0; }
 
-        // Kuyruğun sonuna eleman ekler
         public void Enqueue(T item)
         {
-            throw new NotImplementedException();
+            Node newNode = new Node(item);
+            if (_tail == null) { _head = newNode; _tail = newNode; }
+            else { _tail.Next = newNode; _tail = newNode; }
+            _count++;
         }
 
-        // Kuyruğun başındaki elemanı çıkarır ve döndürür
         public T Dequeue()
         {
-            throw new NotImplementedException();
+            if (IsEmpty()) throw new InvalidOperationException("Kuyruk bos.");
+            T data = _head.Data;
+            _head = _head.Next;
+            if (_head == null) _tail = null;
+            _count--;
+            return data;
         }
 
-        // Kuyruk boş mu kontrol eder
-        public bool IsEmpty()
+        public T Peek()
         {
-            throw new NotImplementedException();
+            if (IsEmpty()) throw new InvalidOperationException("Kuyruk bos.");
+            return _head.Data;
         }
+
+        public bool IsEmpty() => _count == 0;
+        public int Count => _count;
     }
 }
