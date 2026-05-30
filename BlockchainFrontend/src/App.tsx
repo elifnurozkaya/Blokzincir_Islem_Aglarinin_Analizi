@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import './App.css';
 import { Search, Activity, Box, Database, Plus, Trash2, CheckCircle, XCircle, Loader } from 'lucide-react';
 import ForceGraph2D from 'react-force-graph-2d';
@@ -120,9 +120,11 @@ function App() {
           nodeLabel="name"
           nodeColor={node => node.id === walletId ? '#ffffff' : '#ea580c'}
           nodeRelSize={6}
-          linkColor={link => {
-            if (link.source.id === walletId || link.source === walletId) return '#ef4444'; // Giden ok kırmızı
-            if (link.target.id === walletId || link.target === walletId) return '#22c55e'; // Gelen ok yeşil
+          linkColor={(link: any) => {
+            const sourceId = link.source?.id || link.source;
+            const targetId = link.target?.id || link.target;
+            if (sourceId === walletId) return '#ef4444'; // Giden ok kırmızı
+            if (targetId === walletId) return '#22c55e'; // Gelen ok yeşil
             return '#3b82f6'; // Diğerleri mavi
           }}
           linkDirectionalArrowLength={5}
@@ -130,7 +132,6 @@ function App() {
           linkCurvature="curvature"
           linkLabel="name"
           enableNodeDrag={true}
-          enableZoomPanInteraction={true}
           backgroundColor="#0b0f19"
         />
       </div>
