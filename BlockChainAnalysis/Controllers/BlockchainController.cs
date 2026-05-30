@@ -41,6 +41,10 @@ namespace BlockChainAnalysis.Controllers
             if (wallet == null || string.IsNullOrWhiteSpace(wallet.WalletId))
                 return BadRequest("Geçerli bir cüzdan bilgisi gönderilmedi.");
 
+            // Önceden bu cüzdan varsa hata dön (Overwrite engeli)
+            if (_hashTable.Search(wallet.WalletId) != null)
+                return BadRequest($"Hata: '{wallet.WalletId}' ID'li cüzdan zaten sistemde mevcut!");
+
             _hashTable.Insert(wallet.WalletId, wallet);
             _graph.AddVertex(wallet);
 
@@ -71,7 +75,7 @@ namespace BlockChainAnalysis.Controllers
         {
             var wallet = _hashTable.Search(walletId);
             if (wallet == null)
-                return NotFound(new { message = $"Cüzdan bulunamadı: {walletId}" });
+                return NotFound(new { message = $"Hata: Silinmek istenen '{walletId}' ID'li cüzdan bulunamadı!" });
 
             _hashTable.Delete(walletId);
             return Ok(new { message = $"Cüzdan silindi: {walletId}" });
@@ -203,12 +207,16 @@ namespace BlockChainAnalysis.Controllers
         /// Body: [ { transaction1 }, { transaction2 }, ... ]
         /// </summary>
         [HttpPost("merkle/verify")]
-        public IActionResult VerifyIntegrity([FromBody] List<Transaction> transactions)
+        public IActionResult VerifyIntegrity()
         {
-            if (transactions == null)
-                return BadRequest("İşlem listesi gönderilmedi.");
+            // Tüm işlemleri toplayıp genel Merkle Root ile kıyaslamamız lazım. (Arayüzden gelen eksik liste ile değil)
+            var allTransactions = new List<Transaction>();
+            foreach (var wallet in _graph.GetAllWallets())
+            {
+                allTransactions.AddRange(_graph.GetNeighbors(wallet.WalletId));
+            }
 
-            bool isValid = _merkleTree.VerifyIntegrity(transactions);
+            bool isValid = _merkleTree.VerifyIntegrity(allTransactions);
 
             return Ok(new
             {

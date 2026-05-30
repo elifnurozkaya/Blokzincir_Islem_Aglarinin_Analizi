@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import './App.css';
 import { Search, Activity, Box, Database, Plus, Trash2, CheckCircle, XCircle, Loader } from 'lucide-react';
+import ForceGraph2D from 'react-force-graph-2d';
 
 const API = 'http://localhost:5084/api/blockchain';
 
@@ -57,12 +58,11 @@ function App() {
   }, [walletId, algorithm]);
 
   const handleVerify = useCallback(async () => {
-    if (!transactions.length) return;
     try {
-      const res = await fetch(`${API}/merkle/verify`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(transactions) });
+      const res = await fetch(`${API}/merkle/verify`, { method: 'POST' });
       setVerified((await res.json()).isValid);
     } catch { setError('Dogrulama sirasinda hata olustu.'); }
-  }, [transactions]);
+  }, []);
 
   const handleAddWallet = useCallback(async () => {
     if (!newWalletId.trim()) return;
@@ -93,44 +93,47 @@ function App() {
 
   const renderGraph = () => {
     if (transactions.length === 0) return <div className="placeholder">Bir cuzdan ID girin ve Analiz Et e basin</div>;
+    
     const nodeSet = new Set<string>();
     transactions.forEach(t => { nodeSet.add(t.fromWalletId); nodeSet.add(t.toWalletId); });
-    const nodes = Array.from(nodeSet);
-    const W = 700, H = 300, R = 20;
-    const cx = W / 2, cy = H / 2, radius = Math.min(cx, cy) - 50;
-    const positions: Record<string, { x: number; y: number }> = {};
-    nodes.forEach((id, i) => {
-      const angle = (2 * Math.PI * i) / nodes.length - Math.PI / 2;
-      positions[id] = { x: cx + radius * Math.cos(angle), y: cy + radius * Math.sin(angle) };
+    
+    const nodes = Array.from(nodeSet).map(id => ({ id, name: id }));
+    
+    // Aynı cüzdanlar arasındaki birden fazla işlemi ayırt edebilmek için eğim (curvature) hesapla
+    const pairMap = new Map<string, number>();
+    const links = transactions.map(t => {
+      const pairId = [t.fromWalletId, t.toWalletId].sort().join('-');
+      const count = pairMap.get(pairId) || 0;
+      pairMap.set(pairId, count + 1);
+      // count 0 ise düz (0), sonraki aynı oklarda ise kavisli (0.2, -0.2, 0.4 vb.) yap
+      const curvature = count === 0 ? 0 : (count % 2 === 0 ? 1 : -1) * 0.2 * Math.ceil(count / 2);
+      
+      return { source: t.fromWalletId, target: t.toWalletId, amount: t.amount, name: `${t.amount} BTC`, curvature };
     });
+
     return (
-      <svg viewBox={`0 0 ${W} ${H}`} style={{ width: '100%', height: '100%' }}>
-        <defs>
-          <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
-            <path d="M0,0 L0,6 L8,3 z" fill="#3b82f6" />
-          </marker>
-        </defs>
-        {transactions.map((tx, i) => {
-          const from = positions[tx.fromWalletId], to = positions[tx.toWalletId];
-          if (!from || !to) return null;
-          const dx = to.x - from.x, dy = to.y - from.y, len = Math.sqrt(dx * dx + dy * dy);
-          return (
-            <g key={i}>
-              <line x1={from.x} y1={from.y} x2={to.x - (dx / len) * (R + 8)} y2={to.y - (dy / len) * (R + 8)} stroke="#3b82f6" strokeWidth={1.5} strokeOpacity={0.6} markerEnd="url(#arrow)" />
-              <text x={(from.x + to.x) / 2} y={(from.y + to.y) / 2 - 6} fill="#94a3b8" fontSize="10" textAnchor="middle">{tx.amount} BTC</text>
-            </g>
-          );
-        })}
-        {nodes.map(id => {
-          const pos = positions[id];
-          return (
-            <g key={id}>
-              <circle cx={pos.x} cy={pos.y} r={R} fill={id === walletId ? '#3b82f6' : '#181b21'} stroke={id === walletId ? '#3b82f6' : '#2e3646'} strokeWidth={2} />
-              <text x={pos.x} y={pos.y + 4} fill={id === walletId ? '#fff' : '#94a3b8'} fontSize="9" textAnchor="middle" fontFamily="monospace">{id.length > 8 ? id.slice(0, 8) + '...' : id}</text>
-            </g>
-          );
-        })}
-      </svg>
+      <div style={{ width: '100%', height: '100%', overflow: 'hidden', borderRadius: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <ForceGraph2D
+          width={800}
+          height={400}
+          graphData={{ nodes, links }}
+          nodeLabel="name"
+          nodeColor={node => node.id === walletId ? '#ffffff' : '#ea580c'}
+          nodeRelSize={6}
+          linkColor={link => {
+            if (link.source.id === walletId || link.source === walletId) return '#ef4444'; // Giden ok kırmızı
+            if (link.target.id === walletId || link.target === walletId) return '#22c55e'; // Gelen ok yeşil
+            return '#3b82f6'; // Diğerleri mavi
+          }}
+          linkDirectionalArrowLength={5}
+          linkDirectionalArrowRelPos={1}
+          linkCurvature="curvature"
+          linkLabel="name"
+          enableNodeDrag={true}
+          enableZoomPanInteraction={true}
+          backgroundColor="#0b0f19"
+        />
+      </div>
     );
   };
 
