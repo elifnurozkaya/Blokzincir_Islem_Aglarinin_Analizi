@@ -21,6 +21,8 @@ namespace BlockChainAnalysis.DataStructures.Tree
         }
     }
 
+    // Author: Abdullah Eren Korkmaz
+    // Açıklama: Proje gereklilikleri kapsamında Merkle Ağacı veri yapısı tarafımca kodlanmıştır.
     public class MerkleTree
     {
         public MerkleNode Root { get; private set; }

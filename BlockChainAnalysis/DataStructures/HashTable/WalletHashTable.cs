@@ -4,6 +4,8 @@ using BlockChainAnalysis.Models;
 
 namespace BlockChainAnalysis.DataStructures.HashTable
 {
+    // Author: Yiğit Sağım
+    // Açıklama: Proje gereklilikleri kapsamında Hash Table veri yapısı tarafımca kodlanmıştır.
     public class WalletHashTable
     {
         private LinkedList<(string Key, Wallet Value)>[] _buckets;

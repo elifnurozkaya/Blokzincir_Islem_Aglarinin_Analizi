@@ -4,6 +4,8 @@ using BlockChainAnalysis.Models;
 
 namespace BlockChainAnalysis.DataStructures.Graph
 {
+    // Author: Elifnur Özkaya
+    // Açıklama: Proje gereklilikleri kapsamında Graf veri yapısı tarafımca kodlanmıştır.
     public class TransactionGraph
     {
         // Cüzdanları tutan dictionary (WalletId -> Wallet)
