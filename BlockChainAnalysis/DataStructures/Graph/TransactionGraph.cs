@@ -4,6 +4,8 @@ using BlockChainAnalysis.Models;
 
 namespace BlockChainAnalysis.DataStructures.Graph
 {
+    // Author: Elifnur Özkaya
+    // Açıklama: Proje gereklilikleri kapsamında Graf veri yapısı tarafımca kodlanmıştır.
     public class TransactionGraph
     {
         // Cüzdanları tutan dictionary (WalletId -> Wallet)
@@ -47,6 +49,26 @@ namespace BlockChainAnalysis.DataStructures.Graph
             _adjacencyList[transaction.FromWalletId].Add(transaction);
         }
 
+        // Düğüm (Cüzdan) siler ve ona bağlı tüm işlemleri temizler
+        public void RemoveVertex(string walletId)
+        {
+            if (_vertices.ContainsKey(walletId))
+            {
+                _vertices.Remove(walletId);
+            }
+
+            if (_adjacencyList.ContainsKey(walletId))
+            {
+                _adjacencyList.Remove(walletId);
+            }
+
+            // Diğer cüzdanlardan bu cüzdana gelen veya giden tüm işlemleri temizle
+            foreach (var key in _adjacencyList.Keys)
+            {
+                _adjacencyList[key].RemoveAll(tx => tx.ToWalletId == walletId || tx.FromWalletId == walletId);
+            }
+        }
+
         // ==================== ARAMA FONKSİYONLARI ====================
 
         // BFS - Breadth First Search Algoritması
@@ -54,6 +76,13 @@ namespace BlockChainAnalysis.DataStructures.Graph
         public List<Transaction> BreadthFirstSearch(string startWalletId)
         {
             var result = new List<Transaction>();
+
+            // Başlangıç düğümüne (cüzdana) GELEN doğrudan işlemleri de haritaya dahil edelim
+            // Böylece sadece gidenler değil, bu cüzdanın fonu nereden aldığı da UI'da gözükür ve bakiye doğru hesaplanır.
+            foreach (var key in _adjacencyList.Keys)
+            {
+                result.AddRange(_adjacencyList[key].Where(tx => tx.ToWalletId == startWalletId));
+            }
 
             if (!_adjacencyList.ContainsKey(startWalletId))
                 return result;
@@ -88,6 +117,12 @@ namespace BlockChainAnalysis.DataStructures.Graph
         public List<Transaction> DepthFirstSearch(string startWalletId)
         {
             var result = new List<Transaction>();
+
+            // Başlangıç düğümüne (cüzdana) GELEN doğrudan işlemleri haritaya dahil edelim
+            foreach (var key in _adjacencyList.Keys)
+            {
+                result.AddRange(_adjacencyList[key].Where(tx => tx.ToWalletId == startWalletId));
+            }
 
             if (!_adjacencyList.ContainsKey(startWalletId))
                 return result;

@@ -2,33 +2,37 @@ using System;
 
 namespace BlockChainAnalysis.DataStructures.Collections
 {
-    // 4. KİŞİ TARAFINDAN DOLDURULACAKTIR (Yığıt)
-    // DFS algoritması için kullanılacaktır
     public class CustomStack<T>
     {
-        // TODO: Yığıt yapısı için LinkedList veya Array tanımlayın
+        private class Node { public T Data; public Node Next; public Node(T data) { Data = data; Next = null; } }
+        private Node _top;
+        private int _count;
 
-        public CustomStack()
-        {
-            // TODO: Başlangıç atamalarını yapın
-        }
+        public CustomStack() { _top = null; _count = 0; }
 
-        // Yığıtın en üstüne eleman ekler
         public void Push(T item)
         {
-            throw new NotImplementedException();
+            Node newNode = new Node(item) { Next = _top };
+            _top = newNode;
+            _count++;
         }
 
-        // Yığıtın en üstündeki elemanı çıkarır ve döndürür
         public T Pop()
         {
-            throw new NotImplementedException();
+            if (IsEmpty()) throw new InvalidOperationException("Yigit bos.");
+            T data = _top.Data;
+            _top = _top.Next;
+            _count--;
+            return data;
         }
 
-        // Yığıt boş mu kontrol eder
-        public bool IsEmpty()
+        public T Peek()
         {
-            throw new NotImplementedException();
+            if (IsEmpty()) throw new InvalidOperationException("Yigit bos.");
+            return _top.Data;
         }
+
+        public bool IsEmpty() => _count == 0;
+        public int Count => _count;
     }
 }
