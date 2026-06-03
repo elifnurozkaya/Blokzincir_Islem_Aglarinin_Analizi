@@ -62,8 +62,13 @@ using (var scope = app.Services.CreateScope())
         transactions.Add(tx);
     }
 
-    // Merkle Tree'yi bu 15 işlem ile inşa et
-    merkleTree.BuildTree(transactions);
+    // Merkle Tree'yi Graf üzerinden toplayarak inşa et (Doğrulama sırasının Controller ile birebir aynı olması zorunludur)
+    var allTxFromGraph = new System.Collections.Generic.List<BlockChainAnalysis.Models.Transaction>();
+    foreach (var wallet in graph.GetAllWallets())
+    {
+        allTxFromGraph.AddRange(graph.GetNeighbors(wallet.WalletId));
+    }
+    merkleTree.BuildTree(allTxFromGraph);
 }
 
 if (app.Environment.IsDevelopment())
