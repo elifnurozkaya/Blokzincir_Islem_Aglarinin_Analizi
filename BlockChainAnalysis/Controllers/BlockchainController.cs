@@ -131,7 +131,7 @@ namespace BlockChainAnalysis.Controllers
             var transactions = _graph.BreadthFirstSearch(walletId);
 
             if (transactions.Count == 0)
-                return NotFound(new { message = $"Bu cüzdandan çıkan işlem bulunamadı: {walletId}" });
+                return NotFound(new { message = $"Bu cüzdanla ilişkili hiçbir işlem bulunamadı: {walletId}" });
 
             return Ok(new
             {
@@ -152,7 +152,7 @@ namespace BlockChainAnalysis.Controllers
             var transactions = _graph.DepthFirstSearch(walletId);
 
             if (transactions.Count == 0)
-                return NotFound(new { message = $"Bu cüzdandan çıkan işlem bulunamadı: {walletId}" });
+                return NotFound(new { message = $"Bu cüzdanla ilişkili hiçbir işlem bulunamadı: {walletId}" });
 
             return Ok(new
             {

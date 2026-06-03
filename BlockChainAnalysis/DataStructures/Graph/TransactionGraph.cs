@@ -77,6 +77,13 @@ namespace BlockChainAnalysis.DataStructures.Graph
         {
             var result = new List<Transaction>();
 
+            // Başlangıç düğümüne (cüzdana) GELEN doğrudan işlemleri de haritaya dahil edelim
+            // Böylece sadece gidenler değil, bu cüzdanın fonu nereden aldığı da UI'da gözükür ve bakiye doğru hesaplanır.
+            foreach (var key in _adjacencyList.Keys)
+            {
+                result.AddRange(_adjacencyList[key].Where(tx => tx.ToWalletId == startWalletId));
+            }
+
             if (!_adjacencyList.ContainsKey(startWalletId))
                 return result;
 
@@ -110,6 +117,12 @@ namespace BlockChainAnalysis.DataStructures.Graph
         public List<Transaction> DepthFirstSearch(string startWalletId)
         {
             var result = new List<Transaction>();
+
+            // Başlangıç düğümüne (cüzdana) GELEN doğrudan işlemleri haritaya dahil edelim
+            foreach (var key in _adjacencyList.Keys)
+            {
+                result.AddRange(_adjacencyList[key].Where(tx => tx.ToWalletId == startWalletId));
+            }
 
             if (!_adjacencyList.ContainsKey(startWalletId))
                 return result;
