@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("BlockChainAnalysis")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+564fd341455719715e7797a68c95134db6f8a2d0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+d12957e012b0005f5df7b52e92fe3851ef142c96")]
 [assembly: System.Reflection.AssemblyProductAttribute("BlockChainAnalysis")]
 [assembly: System.Reflection.AssemblyTitleAttribute("BlockChainAnalysis")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
