@@ -49,6 +49,26 @@ namespace BlockChainAnalysis.DataStructures.Graph
             _adjacencyList[transaction.FromWalletId].Add(transaction);
         }
 
+        // Düğüm (Cüzdan) siler ve ona bağlı tüm işlemleri temizler
+        public void RemoveVertex(string walletId)
+        {
+            if (_vertices.ContainsKey(walletId))
+            {
+                _vertices.Remove(walletId);
+            }
+
+            if (_adjacencyList.ContainsKey(walletId))
+            {
+                _adjacencyList.Remove(walletId);
+            }
+
+            // Diğer cüzdanlardan bu cüzdana gelen veya giden tüm işlemleri temizle
+            foreach (var key in _adjacencyList.Keys)
+            {
+                _adjacencyList[key].RemoveAll(tx => tx.ToWalletId == walletId || tx.FromWalletId == walletId);
+            }
+        }
+
         // ==================== ARAMA FONKSİYONLARI ====================
 
         // BFS - Breadth First Search Algoritması

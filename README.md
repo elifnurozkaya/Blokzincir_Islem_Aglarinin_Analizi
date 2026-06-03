@@ -131,6 +131,6 @@ Farklı teknolojilerle yazılmış Frontend ve C# Backend servislerinin, sistem 
 
 4. **Uygulamayı Görüntüleme:** 
    İşlem tamamlandıktan sonra web tarayıcınızı açıp aşağıdaki adrese giderek projeyi kullanmaya başlayabilirsiniz:
-   👉 **http://localhost:5173**
+   -->**http://localhost:5173**
 
 Sistemi tamamen durdurmak ve kapatmak için aynı dizinde `docker-compose down` komutunu kullanabilirsiniz.

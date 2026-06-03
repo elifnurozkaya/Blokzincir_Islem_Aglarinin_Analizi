@@ -78,7 +78,10 @@ namespace BlockChainAnalysis.Controllers
                 return NotFound(new { message = $"Hata: Silinmek istenen '{walletId}' ID'li cüzdan bulunamadı!" });
 
             _hashTable.Delete(walletId);
-            return Ok(new { message = $"Cüzdan silindi: {walletId}" });
+            _graph.RemoveVertex(walletId); // Graf'tan da cüzdanı ve ona bağlı tüm işlemleri uçuruyoruz
+            RebuildMerkleTree();           // İşlemler silindiği için Merkle Tree'yi yeniden inşa et
+
+            return Ok(new { message = $"Cüzdan ve ona bağlı işlemler silindi: {walletId}" });
         }
 
         // ================================================================
@@ -104,7 +107,7 @@ namespace BlockChainAnalysis.Controllers
             _graph.AddEdge(transaction);
 
             // Merkle Tree'yi yeniden inşa et (tüm işlemleri içerecek şekilde)
-            RebuildMerkleTree(transaction);
+            RebuildMerkleTree();
 
             return Ok(new
             {
@@ -232,7 +235,7 @@ namespace BlockChainAnalysis.Controllers
         // ================================================================
         // Not: Gerçek bir sistemde tüm transaction'lar bir repository'de tutulur.
         // Şimdilik in-memory olarak Graf'tan toplanıyor.
-        private void RebuildMerkleTree(Transaction latestTx)
+        private void RebuildMerkleTree()
         {
             // Graf'taki tüm işlemleri topla
             var allTransactions = new List<Transaction>();
