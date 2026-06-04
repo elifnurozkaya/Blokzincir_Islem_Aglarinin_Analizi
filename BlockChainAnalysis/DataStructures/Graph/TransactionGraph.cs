@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using BlockChainAnalysis.Models;
+using BlockChainAnalysis.DataStructures.HashTable; 
 
 namespace BlockChainAnalysis.DataStructures.Graph
 {
@@ -8,24 +10,25 @@ namespace BlockChainAnalysis.DataStructures.Graph
     // Açıklama: Proje gereklilikleri kapsamında Graf veri yapısı tarafımca kodlanmıştır.
     public class TransactionGraph
     {
-        // Cüzdanları tutan dictionary (WalletId -> Wallet)
-        private Dictionary<string, Wallet> _vertices;
+       
+        private WalletHashTable _vertices;
 
-        // Komşuluk listesi (WalletId -> o cüzdandan çıkan işlemler)
+        // Komşuluk listesi (İşlemleri listelemek için standart Dictionary)
         private Dictionary<string, List<Transaction>> _adjacencyList;
 
         public TransactionGraph()
         {
-            _vertices = new Dictionary<string, Wallet>();
+            _vertices = new WalletHashTable(); // Kendi Hash Table nesnemiz başlatıldı
             _adjacencyList = new Dictionary<string, List<Transaction>>();
         }
 
         // Düğüm (Cüzdan) ekler
         public void AddVertex(Wallet wallet)
         {
-            if (!_vertices.ContainsKey(wallet.WalletId))
+           
+            if (_vertices.Search(wallet.WalletId) == null)
             {
-                _vertices[wallet.WalletId] = wallet;
+                _vertices.Insert(wallet.WalletId, wallet);
                 _adjacencyList[wallet.WalletId] = new List<Transaction>();
             }
         }
@@ -33,28 +36,26 @@ namespace BlockChainAnalysis.DataStructures.Graph
         // Yönlü Kenar (İşlem/Transfer) ekler
         public void AddEdge(Transaction transaction)
         {
-            // Gönderen cüzdan yoksa otomatik ekle
             if (!_adjacencyList.ContainsKey(transaction.FromWalletId))
             {
                 AddVertex(new Wallet(transaction.FromWalletId));
             }
 
-            // Alıcı cüzdan yoksa otomatik ekle
             if (!_adjacencyList.ContainsKey(transaction.ToWalletId))
             {
                 AddVertex(new Wallet(transaction.ToWalletId));
             }
 
-            // Yönlü kenar: sadece FromWallet -> ToWallet
             _adjacencyList[transaction.FromWalletId].Add(transaction);
         }
 
         // Düğüm (Cüzdan) siler ve ona bağlı tüm işlemleri temizler
         public void RemoveVertex(string walletId)
         {
-            if (_vertices.ContainsKey(walletId))
+            
+            if (_vertices.Search(walletId) != null)
             {
-                _vertices.Remove(walletId);
+                _vertices.Delete(walletId);
             }
 
             if (_adjacencyList.ContainsKey(walletId))
@@ -71,14 +72,10 @@ namespace BlockChainAnalysis.DataStructures.Graph
 
         // ==================== ARAMA FONKSİYONLARI ====================
 
-        // BFS - Breadth First Search Algoritması
-        // Belirli bir cüzdandan başlayan fon akışını katmanlı olarak takip eder
         public List<Transaction> BreadthFirstSearch(string startWalletId)
         {
             var result = new List<Transaction>();
 
-            // Başlangıç düğümüne (cüzdana) GELEN doğrudan işlemleri de haritaya dahil edelim
-            // Böylece sadece gidenler değil, bu cüzdanın fonu nereden aldığı da UI'da gözükür ve bakiye doğru hesaplanır.
             foreach (var key in _adjacencyList.Keys)
             {
                 result.AddRange(_adjacencyList[key].Where(tx => tx.ToWalletId == startWalletId));
@@ -87,8 +84,8 @@ namespace BlockChainAnalysis.DataStructures.Graph
             if (!_adjacencyList.ContainsKey(startWalletId))
                 return result;
 
-            var visited = new HashSet<string>(); // Ziyaret edilen cüzdanlar
-            var queue = new Queue<string>();     // BFS kuyruğu
+            var visited = new HashSet<string>(); 
+            var queue = new Queue<string>();     
 
             visited.Add(startWalletId);
             queue.Enqueue(startWalletId);
@@ -112,13 +109,10 @@ namespace BlockChainAnalysis.DataStructures.Graph
             return result;
         }
 
-        // DFS - Depth First Search Algoritması
-        // Belirli bir cüzdandan derinlemesine analiz yapar
         public List<Transaction> DepthFirstSearch(string startWalletId)
         {
             var result = new List<Transaction>();
 
-            // Başlangıç düğümüne (cüzdana) GELEN doğrudan işlemleri haritaya dahil edelim
             foreach (var key in _adjacencyList.Keys)
             {
                 result.AddRange(_adjacencyList[key].Where(tx => tx.ToWalletId == startWalletId));
@@ -127,8 +121,8 @@ namespace BlockChainAnalysis.DataStructures.Graph
             if (!_adjacencyList.ContainsKey(startWalletId))
                 return result;
 
-            var visited = new HashSet<string>(); // Ziyaret edilen cüzdanlar
-            var stack = new Stack<string>();     // DFS yığıtı
+            var visited = new HashSet<string>();
+            var stack = new Stack<string>();     
 
             stack.Push(startWalletId);
 
@@ -155,7 +149,6 @@ namespace BlockChainAnalysis.DataStructures.Graph
             return result;
         }
 
-        // Belirli bir cüzdanın tüm komşularını getirir
         public List<Transaction> GetNeighbors(string walletId)
         {
             if (_adjacencyList.ContainsKey(walletId))
@@ -164,10 +157,20 @@ namespace BlockChainAnalysis.DataStructures.Graph
             return new List<Transaction>();
         }
 
-        // Graf içindeki tüm cüzdanları getirir
+        
+        // veriler komşuluk listesi üzerinden Search edilerek toplandı.
         public IEnumerable<Wallet> GetAllWallets()
         {
-            return _vertices.Values;
+            var allWallets = new List<Wallet>();
+            foreach (var key in _adjacencyList.Keys)
+            {
+                var wallet = _vertices.Search(key);
+                if (wallet != null) 
+                {
+                    allWallets.Add(wallet);
+                }
+            }
+            return allWallets;
         }
     }
 }
